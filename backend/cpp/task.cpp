@@ -2,6 +2,9 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
+#include <iostream>
 
 struct File {
     int id;
@@ -16,14 +19,59 @@ struct File {
  * Task 1
  */
 std::vector<std::string> leafFiles(std::vector<File> files) {
-    return std::vector<std::string>();
+    // Going through each file in files and adding the parentId to am
+    // unordered set
+    std::unordered_set<int> parentFileIds;
+    for (int i = 0; i < files.size(); i++) {
+        parentFileIds.insert(files[i].parent);
+    }
+
+    // Checking if each file id exists in the parentFileIds unordered set
+    // and adding the file's name to the leafFiles vector if the file is
+    // not in parentFileIds
+    std::vector<std::string> leafFiles;
+    for (int i = 0; i < files.size(); i++) {
+        if (parentFileIds.find(files[i].id) == parentFileIds.end()) {
+            leafFiles.push_back(files[i].name);
+        }
+    }
+
+    return leafFiles;  
 }
 
 /**
  * Task 2
  */
 std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
-    return std::vector<std::string>();
+    // m is num categories the average case time required is O(mn) bcos
+    // unordered_map uses hasmap implementation
+    std::unordered_set<std::string> categories;
+    std::unordered_map<std::string, int> categoryCounts;
+    for (int i = 0; i < files.size(); i++) {
+         for (int j = 0; j < files[i].numCategories; j++) {
+            categories.insert(files[i].categories[j]);
+            categoryCounts[files[i].categories[j]]++;
+        }
+    }
+
+    std::vector<std::vector<std::string>> buckets(categories.size());
+    for (std::string x : categories) {
+        buckets[categoryCounts[x]].push_back(x);
+    }
+
+    std::vector<std::string> largestCategories;
+    for (int i = 0; i < buckets.size(); i++) {
+        for (int j = 0; j < buckets[i].size(); j++) {
+            largestCategories.push_back(buckets[i][j]);
+            std::cout << buckets[i][j] << std::endl;
+        }
+    }
+    
+    for (int i = 0; i < k; i++) {
+        std::cout << largestCategories[i] << std::endl;
+    }
+
+    return largestCategories;
 }
 
 /**
