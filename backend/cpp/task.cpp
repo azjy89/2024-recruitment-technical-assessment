@@ -54,16 +54,30 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
         }
     }
 
-    std::vector<std::vector<std::string>> buckets(categories.size());
+    int maxCount = 0;
+    for (const auto& pair : categoryCounts) {
+        if (pair.second > maxCount) {
+            maxCount = pair.second;
+        }
+    }
+
+    std::vector<std::vector<std::string>> buckets(categories.size() + 1);
     for (std::string x : categories) {
         buckets[categoryCounts[x]].push_back(x);
     }
 
     std::vector<std::string> largestCategories;
-    for (int i = 0; i < buckets.size(); i++) {
+    int numCategoriesUnaccounted = k;
+    for (int i = maxCount; i > 0; i--) {
         for (int j = 0; j < buckets[i].size(); j++) {
             largestCategories.push_back(buckets[i][j]);
-            std::cout << buckets[i][j] << std::endl;
+            numCategoriesUnaccounted--;
+            if (numCategoriesUnaccounted == 0) {
+                break;
+            }
+        }
+        if (numCategoriesUnaccounted == 0) {
+            break;
         }
     }
     
