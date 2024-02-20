@@ -5,7 +5,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <iostream>
+#include <stdio.h>
 
+// Struct File Defintion
 struct File {
     int id;
     std::string name;
@@ -14,6 +16,26 @@ struct File {
     int parent;
     int size;
 };
+
+// Helper Function Function Prototypes
+
+static int maxCount(
+    std::unordered_map<std::string, int> map
+);
+
+static void bucketSort(
+    std::unordered_set<std::string> categories, 
+    std::unordered_map<std::string, int> categoryCounts,
+    std::vector<std::vector<std::string>> &buckets
+);
+
+static void alphabetic_sort(
+    std::vector<std::string> &strings
+);
+
+static bool stringComparison(
+    std::string a, std::string b
+);
 
 /**
  * Task 1
@@ -53,25 +75,29 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
             categoryCounts[files[i].categories[j]]++;
         }
     }
+
     // Finding the maximum category count
-    int maxCount = 0;
-    for (const auto& pair : categoryCounts) {
-        if (pair.second > maxCount) {
-            maxCount = pair.second;
-        }
-    }
-    // Bucket sorting O(n)
+    int maxCategoryCount = maxCount(categoryCounts);
+
+    // Initialising first values of buckets
     std::vector<std::vector<std::string>> buckets(categories.size() + 1);
-    for (std::string x : categories) {
-        buckets[categoryCounts[x]].push_back(x);
+    for (int i = 0; i < buckets.size(); i++) {
+        buckets[i].push_back("");
     }
+
+    // Bucketsorting strings
+    bucketSort(categories, categoryCounts, buckets);
+
     // Filling out the largest Categories array
     std::vector<std::string> largestCategories;
-    int numCategoriesUnaccounted = k;
-    for (int i = maxCount; i > 0; i--) {
+    int numCategoriesUnaccounted = k;           // Number of unadded categories
+    for (int i = maxCategoryCount; i > 0; i--) {
         for (int j = 0; j < buckets[i].size(); j++) {
-            largestCategories.push_back(buckets[i][j]);
-            numCategoriesUnaccounted--;
+            if (buckets[i][j] != "") {
+                largestCategories.push_back(buckets[i][j]);
+                numCategoriesUnaccounted--;
+            }
+
             if (numCategoriesUnaccounted == 0) {
                 break;
             }
@@ -80,27 +106,105 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
             break;
         }
     }
-    
-    for (int i = 0; i < k; i++) {
-        std::cout << largestCategories[i] << std::endl;
+    for (const auto &it : largestCategories) {
+        std::cout << it << std::endl;
     }
 
     return largestCategories;
 }
 
+static int maxCount(std::unordered_map<std::string, int> map) {
+    int max = 0;
+    for (const auto& pair : map) {
+        if (pair.second > max) {
+            max = pair.second;
+        }
+    }
+
+    return max;
+}
+
+static void bucketSort(
+    std::unordered_set<std::string> categories, 
+    std::unordered_map<std::string, int> categoryCounts,
+    std::vector<std::vector<std::string>> &buckets) {
+    // Bucket sorting the categories based on their counts
+    for (std::string x : categories) {
+        buckets[categoryCounts[x]].push_back(x);
+    }
+
+    // Sorting each bucket alphabetically
+    for (int i = 0; i < buckets.size(); i++) {
+        alphabetic_sort(buckets[i]);
+    }
+}
+
+static void alphabetic_sort(std::vector<std::string> &strings) {
+    std::sort(strings.begin(), strings.end(), stringComparison);
+}
+
+static bool stringComparison(std::string a, std::string b) { return a < b; } 
+
 /**
  * Task 3
  */
 int largestFileSize(std::vector<File> files) {
+
     return 0;
 }
 
 int main(void) {
-    std::vector<File> testFiles{
+    // Test Files
+    std::vector<File> testFiles1{
         { .id = 1, .name = "Document.txt", .categories = {"Documents"}, .numCategories = 1, .parent = 3, .size = 1024 },
         { .id = 2, .name = "Image.jpg", .categories = {"Media", "Photos"}, .numCategories = 2, .parent = 34, .size = 2048 },
         { .id = 3, .name = "Folder", .categories = {"Folder"}, .numCategories = 1, .parent = -1, .size = 0 },
         { .id = 5, .name = "Spreadsheet.xlsx", .categories = {"Documents", "Excel"}, .numCategories = 2, .parent = 3, .size = 4096 },
+        { .id = 8, .name = "Backup.zip", .categories = {"Backup"}, .numCategories = 1, .parent = 233, .size = 8192 },
+        { .id = 13, .name = "Presentation.pptx", .categories = {"Documents", "Presentation"}, .numCategories = 2, .parent = 3, .size = 3072 },
+        { .id = 21, .name = "Video.mp4", .categories = {"Media", "Videos"}, .numCategories = 2, .parent = 34, .size = 6144 },
+        { .id = 34, .name = "Folder2", .categories = {"Folder"}, .numCategories = 1, .parent = 3, .size = 0 },
+        { .id = 55, .name = "Code.py", .categories = {"Programming"}, .numCategories = 1, .parent = -1, .size = 1536 },
+        { .id = 89, .name = "Audio.mp3", .categories = {"Media", "Audio"}, .numCategories = 2, .parent = 34, .size = 2560 },
+        { .id = 144, .name = "Spreadsheet2.xlsx", .categories = {"Documents", "Excel"}, .numCategories = 2, .parent = 3, .size = 2048 },
+        { .id = 233, .name = "Folder3", .categories = {"Folder"}, .numCategories = 1, .parent = -1, .size = 4096 },
+    };
+
+    std::vector<File> testFiles2{
+        { .id = 1, .name = "Document.txt", .categories = {"Documents"}, .numCategories = 1, .parent = 3, .size = 1024 },
+        { .id = 2, .name = "Image.jpg", .categories = {"Media", "Photos"}, .numCategories = 2, .parent = 34, .size = 2048 },
+        { .id = 3, .name = "Folder", .categories = {"Medib"}, .numCategories = 1, .parent = -1, .size = 0 },
+        { .id = 5, .name = "Spreadsheet.xlsx", .categories = {"Documents", "Excel"}, .numCategories = 2, .parent = 3, .size = 4096 },
+        { .id = 8, .name = "Backup.zip", .categories = {"Backup"}, .numCategories = 1, .parent = 233, .size = 8192 },
+        { .id = 13, .name = "Presentation.pptx", .categories = {"Documents", "Presentation"}, .numCategories = 2, .parent = 3, .size = 3072 },
+        { .id = 21, .name = "Video.mp4", .categories = {"Media", "Videos"}, .numCategories = 2, .parent = 34, .size = 6144 },
+        { .id = 34, .name = "Folder2", .categories = {"Medib"}, .numCategories = 1, .parent = 3, .size = 0 },
+        { .id = 55, .name = "Code.py", .categories = {"Programming"}, .numCategories = 1, .parent = -1, .size = 1536 },
+        { .id = 89, .name = "Audio.mp3", .categories = {"Media", "Audio"}, .numCategories = 2, .parent = 34, .size = 2560 },
+        { .id = 144, .name = "Spreadsheet2.xlsx", .categories = {"Documents", "Excel"}, .numCategories = 2, .parent = 3, .size = 2048 },
+        { .id = 233, .name = "Folder3", .categories = {"Medib"}, .numCategories = 1, .parent = -1, .size = 4096 },
+    };
+
+    std::vector<File> testFiles3{
+        { .id = 1, .name = "Document.txt", .categories = {"Documents"}, .numCategories = 1, .parent = 3, .size = 1024 },
+        { .id = 2, .name = "Image.jpg", .categories = {"Medib", "Photos"}, .numCategories = 2, .parent = 34, .size = 2048 },
+        { .id = 3, .name = "Folder", .categories = {"Media"}, .numCategories = 1, .parent = -1, .size = 0 },
+        { .id = 5, .name = "Spreadsheet.xlsx", .categories = {"Documents", "Excel"}, .numCategories = 2, .parent = 3, .size = 4096 },
+        { .id = 8, .name = "Backup.zip", .categories = {"Backup"}, .numCategories = 1, .parent = 233, .size = 8192 },
+        { .id = 13, .name = "Presentation.pptx", .categories = {"Documents", "Presentation"}, .numCategories = 2, .parent = 3, .size = 3072 },
+        { .id = 21, .name = "Video.mp4", .categories = {"Medib", "Videos"}, .numCategories = 2, .parent = 34, .size = 6144 },
+        { .id = 34, .name = "Folder2", .categories = {"Media"}, .numCategories = 1, .parent = 3, .size = 0 },
+        { .id = 55, .name = "Code.py", .categories = {"Programming"}, .numCategories = 1, .parent = -1, .size = 1536 },
+        { .id = 89, .name = "Audio.mp3", .categories = {"Medib", "Audio"}, .numCategories = 2, .parent = 34, .size = 2560 },
+        { .id = 144, .name = "Spreadsheet2.xlsx", .categories = {"Documents", "Excel"}, .numCategories = 2, .parent = 3, .size = 2048 },
+        { .id = 233, .name = "Folder3", .categories = {"Media"}, .numCategories = 1, .parent = -1, .size = 4096 },
+    };
+
+    std::vector<File> testFiles4{
+        { .id = 1, .name = "Document.txt", .categories = {"Documents"}, .numCategories = 1, .parent = 3, .size = 1024 },
+        { .id = 2, .name = "Image.jpg", .categories = {"Excel", "Photos"}, .numCategories = 2, .parent = 34, .size = 2048 },
+        { .id = 3, .name = "Folder", .categories = {"Videos"}, .numCategories = 1, .parent = -1, .size = 0 },
+        { .id = 5, .name = "Spreadsheet.xlsx", .categories = {"Documents"}, .numCategories = 1, .parent = 3, .size = 4096 },
         { .id = 8, .name = "Backup.zip", .categories = {"Backup"}, .numCategories = 1, .parent = 233, .size = 8192 },
         { .id = 13, .name = "Presentation.pptx", .categories = {"Documents", "Presentation"}, .numCategories = 2, .parent = 3, .size = 3072 },
         { .id = 21, .name = "Video.mp4", .categories = {"Media", "Videos"}, .numCategories = 2, .parent = 34, .size = 6144 },
@@ -122,14 +226,36 @@ int main(void) {
         "Spreadsheet2.xlsx",
         "Video.mp4"
     };
-    std::vector<std::string> returnedLeafFiles = leafFiles(testFiles);
+
+    // Task 1 tests
+
+    std::vector<std::string> returnedLeafFiles = leafFiles(testFiles1);
     std::sort(returnedLeafFiles.begin(), returnedLeafFiles.end());
     assert(expectedLeafFiles == returnedLeafFiles);
 
-    std::vector<std::string> expectedCategories{"Documents", "Folder", "Media"};
-    std::vector<std::string> returnedCategories = kLargestCategories(testFiles, 3);
-    assert(expectedCategories == returnedCategories);
+    // Task 2 tests
 
-    assert(largestFileSize(testFiles) == 20992);
+    // General tests
+    std::vector<std::string> expectedCategories1{"Documents", "Folder", "Media"};
+    std::vector<std::string> returnedCategories1 = kLargestCategories(testFiles1, 3);
+    assert(expectedCategories1 == returnedCategories1);
+
+    // Testing alphabetic sorting
+    std::vector<std::string> expectedCategories2{"Documents", "Media", "Medib"};
+    std::vector<std::string> returnedCategories2 = kLargestCategories(testFiles2, 3);
+    assert(expectedCategories2 == returnedCategories2);
+
+    std::vector<std::string> expectedCategories3{"Documents", "Media", "Medib"};
+    std::vector<std::string> returnedCategories3 = kLargestCategories(testFiles3, 3);
+    assert(expectedCategories3 == returnedCategories3);
+
+    // Testing non-contiguous buckets
+    std::vector<std::string> expectedCategories4{"Documents", "Excel", "Folder"};
+    std::vector<std::string> returnedCategories4 = kLargestCategories(testFiles4, 3);
+    assert(expectedCategories4 == returnedCategories4);
+
+    // Task 3 tests
+
+    assert(largestFileSize(testFiles1) == 20992);
 
 }
