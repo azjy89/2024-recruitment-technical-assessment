@@ -20,40 +20,33 @@ struct File {
     int size;
 };
 
-// Helper Function Function Prototypes
-
+// Helper Function Prototypes
 static int maxCount(
     std::unordered_map<std::string, int> map
 );
 
-static void bucketSort(
-    std::unordered_set<std::string> categories, 
-    std::unordered_map<std::string, int> categoryCounts,
-    std::vector<std::vector<std::string>> &buckets
-);
+static void bucketSort(std::unordered_set<std::string> categories, 
+                       std::unordered_map<std::string, int> categoryCounts,
+                       std::vector<std::vector<std::string>> &buckets);
 
-static void alphabetic_sort(
-    std::vector<std::string> &strings
-);
+static void alphabetic_sort(std::vector<std::string> &strings);
 
-static bool stringComparison(
-    std::string a, std::string b
-);
+static bool stringComparison(std::string a, std::string b);
 
 /**
  * Task 1
+ * This function returns an array containing the names of the leaf files
+ * given an array of Files
  */
 std::vector<std::string> leafFiles(std::vector<File> files) {
-    // Going through each file in files and adding the parentId to am
-    // unordered set
+    // Going through each file in files and adding the parentId to parentFileIds
     std::unordered_set<int> parentFileIds;
     for (int i = 0; i < files.size(); i++) {
         parentFileIds.insert(files[i].parent);
     }
 
-    // Checking if each file id exists in the parentFileIds unordered set
-    // and adding the file's name to the leafFiles vector if the file is
-    // not in parentFileIds
+    // Checking if each file id exists in parentFileIds and adding the file's
+    // name to the leafFiles vector if the file is not in parentFileIds
     std::vector<std::string> leafFiles;
     for (int i = 0; i < files.size(); i++) {
         if (parentFileIds.find(files[i].id) == parentFileIds.end()) {
@@ -66,10 +59,13 @@ std::vector<std::string> leafFiles(std::vector<File> files) {
 
 /**
  * Task 2
+ * This function determines the k largest categories by number of files in the 
+ * category and returns an array of the names of those categories given an array
+ * of Files and an integer k
  */
 std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
-    // m is num categories the average case time required is O(mn) bcos
-    // unordered_map uses hasmap implementation
+    // Creating a set of categories and a map of category names to the number
+    // of files in the category
     std::unordered_set<std::string> categories;
     std::unordered_map<std::string, int> categoryCounts;
     for (int i = 0; i < files.size(); i++) {
@@ -78,7 +74,8 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
             categoryCounts[files[i].categories[j]]++;
         }
     }
-    
+
+    // Finding the size of the largest category
     int maxCategoryCount = maxCount(categoryCounts);
     
     // Initialising first values of buckets
@@ -92,7 +89,7 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
     
     // Filling out the largest Categories array
     std::vector<std::string> largestCategories;
-    int numCategoriesUnaccounted = k;           // Number of unadded categories
+    int numCategoriesUnaccounted = k;
     for (int i = maxCategoryCount; i > 0; i--) {
         for (int j = 0; j < buckets[i].size(); j++) {
             if (buckets[i][j] != "") {
@@ -100,11 +97,11 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
                 numCategoriesUnaccounted--;
             }
 
-            if (numCategoriesUnaccounted == 0) {
-                break;
+            if (numCategoriesUnaccounted == 0) { // If k categories added, break
+                break;  
             }
         }
-        if (numCategoriesUnaccounted == 0) {
+        if (numCategoriesUnaccounted == 0) {     // If k categories added, break
             break;
         }
     }
@@ -112,6 +109,7 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
     return largestCategories;
 }
 
+// This function find the largest value given a map of strings to ints
 static int maxCount(std::unordered_map<std::string, int> map) {
     int max = 0;
     for (const auto& pair : map) {
@@ -123,10 +121,11 @@ static int maxCount(std::unordered_map<std::string, int> map) {
     return max;
 }
 
-static void bucketSort(
-    std::unordered_set<std::string> categories, 
-    std::unordered_map<std::string, int> categoryCounts,
-    std::vector<std::vector<std::string>> &buckets) {
+// This function performs bucket sort given a set of category names, a map of 
+// category names to files in the category, and an array of string "buckets"
+static void bucketSort(std::unordered_set<std::string> categories, 
+                       std::unordered_map<std::string, int> categoryCounts,
+                       std::vector<std::vector<std::string>> &buckets) {
     // Bucket sorting the categories based on their counts
     for (std::string x : categories) {
         buckets[categoryCounts[x]].push_back(x);
@@ -138,28 +137,32 @@ static void bucketSort(
     }
 }
 
+// This function sorts an array of strings alphabetically
 static void alphabetic_sort(std::vector<std::string> &strings) {
     std::sort(strings.begin(), strings.end(), stringComparison);
 }
 
+// This function returns compares two strings using default string comparison
+// operator
 static bool stringComparison(std::string a, std::string b) { return a < b; } 
 
 /**
  * Task 3
+ * This function returns the size of the largest files (including all children,
+ * grandchildren, etc.) given an array of Files
  */
 int largestFileSize(std::vector<File> files) {
-    // A map of file ids to pointers to files given the key file id, 
+    // Creating a map of file ids to pointers to files given the key file id, 
     // the value is a pointer to the file with that id
     std::unordered_map<int, File *> fileLookup;
     for (int i = 0; i < files.size(); ++i) {
         fileLookup[files[i].id] = &(files[i]);
     }
-    // A map of 
-    // given the file id, the value is the size of the file
-    // only roots are stored in here
-    std::unordered_map<int, int> file_sizes;
+    
+    // Creating a map of file ids of root files to the size of the file
+    std::unordered_map<int, int> rootFileSize;
     for (auto file : files) {
-        // find the root
+        // find the root file
         File *root = &file;
         while (true) {
             if (root->parent == NO_PARENT) {
@@ -169,23 +172,23 @@ int largestFileSize(std::vector<File> files) {
             }
         }
 
-        // now add to size
-        if (file_sizes.find(root->id) != file_sizes.end()) {
-            file_sizes[root->id] += file.size;
+        // adding root file sizes
+        if (rootFileSize.find(root->id) != rootFileSize.end()) {
+            rootFileSize[root->id] += file.size;
         } else {
-            file_sizes[root->id] = file.size;
+            rootFileSize[root->id] = file.size;
         }
 
     }
 
     // now loop over to find the largest size
-    int curmax = 0;
-    for (auto file_size_pair : file_sizes) {
-        curmax = std::max(curmax, file_size_pair.second);
+    int currMax = 0;
+    for (auto file_size_pair : rootFileSize) {
+        currMax = std::max(currMax, file_size_pair.second);
     }
 
 
-    return curmax;
+    return currMax;
 }
 
 int main(void) {
