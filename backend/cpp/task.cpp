@@ -7,6 +7,9 @@
 #include <iostream>
 #include <stdio.h>
 
+// Definitions
+#define NO_PARENT -1
+
 // Struct File Defintion
 struct File {
     int id;
@@ -75,19 +78,18 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
             categoryCounts[files[i].categories[j]]++;
         }
     }
-
-    // Finding the maximum category count
+    
     int maxCategoryCount = maxCount(categoryCounts);
-
+    
     // Initialising first values of buckets
     std::vector<std::vector<std::string>> buckets(categories.size() + 1);
     for (int i = 0; i < buckets.size(); i++) {
         buckets[i].push_back("");
     }
-
+    
     // Bucketsorting strings
     bucketSort(categories, categoryCounts, buckets);
-
+    
     // Filling out the largest Categories array
     std::vector<std::string> largestCategories;
     int numCategoriesUnaccounted = k;           // Number of unadded categories
@@ -106,10 +108,7 @@ std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
             break;
         }
     }
-    for (const auto &it : largestCategories) {
-        std::cout << it << std::endl;
-    }
-
+    
     return largestCategories;
 }
 
@@ -149,8 +148,44 @@ static bool stringComparison(std::string a, std::string b) { return a < b; }
  * Task 3
  */
 int largestFileSize(std::vector<File> files) {
+    // A map of file ids to pointers to files given the key file id, 
+    // the value is a pointer to the file with that id
+    std::unordered_map<int, File *> fileLookup;
+    for (int i = 0; i < files.size(); ++i) {
+        fileLookup[files[i].id] = &(files[i]);
+    }
+    // A map of 
+    // given the file id, the value is the size of the file
+    // only roots are stored in here
+    std::unordered_map<int, int> file_sizes;
+    for (auto file : files) {
+        // find the root
+        File *root = &file;
+        while (true) {
+            if (root->parent == NO_PARENT) {
+                break;
+            } else {
+                root = fileLookup[root->parent];
+            }
+        }
 
-    return 0;
+        // now add to size
+        if (file_sizes.find(root->id) != file_sizes.end()) {
+            file_sizes[root->id] += file.size;
+        } else {
+            file_sizes[root->id] = file.size;
+        }
+
+    }
+
+    // now loop over to find the largest size
+    int curmax = 0;
+    for (auto file_size_pair : file_sizes) {
+        curmax = std::max(curmax, file_size_pair.second);
+    }
+
+
+    return curmax;
 }
 
 int main(void) {
